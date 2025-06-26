@@ -9,6 +9,8 @@ public interface ClientMembershipService {
 
     boolean isClientMembershipActive(Integer clientId);
 
+    Integer getRemainingSessions(Integer clientId);
 
+    Integer useSession(Integer clientId);
 
 }

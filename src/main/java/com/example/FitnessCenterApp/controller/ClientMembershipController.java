@@ -2,6 +2,7 @@ package com.example.FitnessCenterApp.controller;
 
 import com.example.FitnessCenterApp.controller.clientMembership.ClientMembershipDto;
 import com.example.FitnessCenterApp.controller.clientMembership.CreateClientMembershipRequest;
+import com.example.FitnessCenterApp.controller.clientMembership.SessionsRemainingDto;
 import com.example.FitnessCenterApp.service.clientMemberships.ClientMembershipService;
 import jakarta.persistence.EntityNotFoundException;
 import org.hibernate.exception.ConstraintViolationException;
@@ -15,7 +16,7 @@ public class ClientMembershipController {
     @Autowired
     ClientMembershipService clientMembershipService;
 
-    @PostMapping(value = "/clientMemberships")
+    @PostMapping(value = "/client-memberships")
     public ResponseEntity<ClientMembershipDto> addMembershipToClient(@RequestBody CreateClientMembershipRequest createClientMembershipRequest) {
         try {
             ClientMembershipDto newClientMembership = clientMembershipService.assignMembershipToClient(createClientMembershipRequest);
@@ -31,13 +32,37 @@ public class ClientMembershipController {
         }
     }
 
-    @GetMapping("activeMembership/{clientId}")
+    @GetMapping("/active-membership/{clientId}")
     public ResponseEntity<String> isClientMembershipActive(@PathVariable Integer clientId) {
         boolean active = clientMembershipService.isClientMembershipActive(clientId);
         if (active) {
             return new ResponseEntity<>("Client has an active membership.", HttpStatus.OK);
         } else {
             return new ResponseEntity<>("Client does not have an active membership.", HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/sessions-remaining/{clientId}")
+    public ResponseEntity<SessionsRemainingDto> getRemainingSessions(@PathVariable Integer clientId) {
+        try {
+            Integer remainingSessions = clientMembershipService.getRemainingSessions(clientId);
+            return ResponseEntity.ok(new SessionsRemainingDto(remainingSessions));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @PostMapping("/use-session/{clientId}")
+    public ResponseEntity<SessionsRemainingDto> useSession(@PathVariable Integer clientId) {
+        try {
+            Integer remainingSessions = clientMembershipService.useSession(clientId);
+            return ResponseEntity.ok(new SessionsRemainingDto(remainingSessions));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
 }

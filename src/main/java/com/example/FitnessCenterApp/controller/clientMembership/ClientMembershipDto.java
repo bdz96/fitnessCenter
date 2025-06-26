@@ -18,4 +18,5 @@ public class ClientMembershipDto {
     private MembershipDto membership;
     private Date createdAt;
     private Date expiresAt;
+    private Integer sessionsRemaining;
 }

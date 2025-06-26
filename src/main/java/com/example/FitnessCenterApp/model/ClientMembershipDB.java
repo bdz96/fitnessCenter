@@ -28,5 +28,9 @@ public class ClientMembershipDB {
     private MembershipDB membershipDB;
 
     private LocalDate createdAt;
-    private LocalDate expiresAt; // change u date kad bude logika, dok je testno ok
+    private LocalDate expiresAt;
+
+    @Column(name = "sessions_remaining")
+    private Integer sessionsRemaining;
+
 }

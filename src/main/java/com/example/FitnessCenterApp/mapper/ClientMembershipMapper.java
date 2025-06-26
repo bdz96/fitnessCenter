@@ -17,6 +17,7 @@ public class ClientMembershipMapper {
         clientMembershipDto.setMembership(MembershipMapper.fromDB(clientMembershipDB.getMembershipDB()));
         clientMembershipDto.setCreatedAt(Date.valueOf(clientMembershipDB.getCreatedAt()));
         clientMembershipDto.setExpiresAt(Date.valueOf(clientMembershipDB.getExpiresAt()));
+        clientMembershipDto.setSessionsRemaining(clientMembershipDB.getSessionsRemaining());
         return clientMembershipDto;
     }
 
@@ -27,6 +28,7 @@ public class ClientMembershipMapper {
         clientMembershipDB.setMembershipDB(MembershipMapper.toDB(clientMembershipDto.getMembership()));
         clientMembershipDB.setCreatedAt(clientMembershipDto.getCreatedAt().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate());
         clientMembershipDB.setExpiresAt(clientMembershipDto.getExpiresAt().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate());
+        clientMembershipDB.setSessionsRemaining(clientMembershipDto.getSessionsRemaining());
 
         return clientMembershipDB;
     }
@@ -38,6 +40,7 @@ public class ClientMembershipMapper {
         clientMembershipDB.setMembershipDB(membership);
         clientMembershipDB.setCreatedAt(createdAt);
         clientMembershipDB.setExpiresAt(expiresAt);
+        clientMembershipDB.setSessionsRemaining(membership.getSessionsAvailable());
 
         return clientMembershipDB;
     }

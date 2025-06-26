@@ -11,6 +11,7 @@ import com.example.FitnessCenterApp.repository.ClientMembershipRepository;
 import com.example.FitnessCenterApp.repository.ClientRepository;
 import com.example.FitnessCenterApp.repository.MembershipRepository;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -67,5 +68,37 @@ public class ClientMembershipServiceImplementation implements ClientMembershipSe
     @Override
     public boolean isClientMembershipActive(Integer clientId) {
         return clientMembershipRepository.findActiveMembershipByClientId(clientId) != null;
+    }
+
+    @Override
+    public Integer getRemainingSessions(Integer clientId) {
+        ClientMembershipDB clientMembershipDB = getActiveMembershipOrThrow(clientId);
+        return clientMembershipDB.getSessionsRemaining();
+    }
+
+    @Override
+    @Transactional
+    public Integer useSession(Integer clientId) {
+        ClientMembershipDB clientMembershipDB = getActiveMembershipOrThrow(clientId);
+
+        if (clientMembershipDB.getSessionsRemaining() == null || clientMembershipDB.getSessionsRemaining() <= 0) {
+            throw new IllegalStateException("No remaining sessions.");
+        }
+        clientMembershipDB.setSessionsRemaining(clientMembershipDB.getSessionsRemaining() - 1);
+        return clientMembershipDB.getSessionsRemaining();
+    }
+
+    private ClientMembershipDB getActiveMembershipOrThrow(Integer clientId) {
+        ClientMembershipDB clientMembershipDB = clientMembershipRepository.findActiveMembershipByClientId(clientId);
+
+        if (clientMembershipDB == null) {
+            throw new EntityNotFoundException("No active membership found for client.");
+        }
+
+        if (clientMembershipDB.getExpiresAt() == null || clientMembershipDB.getExpiresAt().isBefore(LocalDate.now())) {
+            throw new IllegalStateException("Membership expired.");
+        }
+
+        return clientMembershipDB;
     }
 }

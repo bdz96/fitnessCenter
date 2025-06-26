@@ -11,4 +11,5 @@ public interface ClientMembershipRepository extends JpaRepository<ClientMembersh
 
     @Query("SELECT cm FROM ClientMembershipDB cm WHERE cm.clientDB.id = :clientId AND cm.expiresAt >= CURRENT_DATE")
     ClientMembershipDB findActiveMembershipByClientId(@Param("clientId") Integer clientId);
+
 }
