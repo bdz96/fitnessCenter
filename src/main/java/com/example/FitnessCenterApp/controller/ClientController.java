@@ -1,40 +1,54 @@
+
 package com.example.FitnessCenterApp.controller;
 
 import com.example.FitnessCenterApp.controller.client.ClientDto;
 import com.example.FitnessCenterApp.controller.client.CreateClientRequest;
 import com.example.FitnessCenterApp.service.client.ClientService;
-import org.hibernate.exception.ConstraintViolationException;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@RequestMapping(ClientController.BASE_PATH)
 public class ClientController {
-    @Autowired
-    ClientService clientService;
 
-    @PostMapping(value = "/clients")
-    public ResponseEntity<ClientDto> add(@RequestBody CreateClientRequest createClientRequest) {
-        try {
-            ClientDto newClient = clientService.saveClient(createClientRequest);
-            return new ResponseEntity<>(newClient, HttpStatus.CREATED);
-        } catch (ConstraintViolationException e) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public static final String BASE_PATH = "/clients";
+
+    private final ClientService clientService;
+
+    @Autowired
+    public ClientController(ClientService clientService) {
+        this.clientService = clientService;
     }
 
-    @GetMapping(value = "/clients")
-    public ResponseEntity<List<ClientDto>> getClients() {
-        List<ClientDto> clientList = clientService.getAllClients();
-        return new ResponseEntity<>(clientList, HttpStatus.OK);
+    @PostMapping
+    public ResponseEntity<ClientDto> add(@Valid @RequestBody CreateClientRequest request) {
+        return new ResponseEntity<>(clientService.saveClient(request), HttpStatus.CREATED);
+    }
 
+    @GetMapping
+    public ResponseEntity<List<ClientDto>> getClients() {
+        return ResponseEntity.ok(clientService.getAllClients());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ClientDto> getClientById(@PathVariable Integer id) {
+        return ResponseEntity.ok(clientService.getClientById(id));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteClient(@PathVariable Integer id) {
+        clientService.deleteClient(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ClientDto> updateClient(@PathVariable Integer id,
+                                                  @Valid @RequestBody CreateClientRequest request) {
+        return ResponseEntity.ok(clientService.updateClient(id, request));
     }
 }

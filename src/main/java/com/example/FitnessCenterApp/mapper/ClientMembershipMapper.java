@@ -4,45 +4,30 @@ import com.example.FitnessCenterApp.controller.clientMembership.ClientMembership
 import com.example.FitnessCenterApp.model.ClientDB;
 import com.example.FitnessCenterApp.model.ClientMembershipDB;
 import com.example.FitnessCenterApp.model.MembershipDB;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-import java.sql.Date;
 import java.time.LocalDate;
 
-public class ClientMembershipMapper {
+@Mapper(componentModel = "spring", uses = {ClientMapper.class, MembershipMapper.class})
+public interface ClientMembershipMapper {
 
-    public static ClientMembershipDto fromDB(ClientMembershipDB clientMembershipDB) {
-        ClientMembershipDto clientMembershipDto = new ClientMembershipDto();
+    @Mapping(source = "clientDB", target = "client")
+    @Mapping(source = "membershipDB", target = "membership")
+    ClientMembershipDto fromDB(ClientMembershipDB clientMembershipDB);
 
-        clientMembershipDto.setClient(ClientMapper.fromDB(clientMembershipDB.getClientDB()));
-        clientMembershipDto.setMembership(MembershipMapper.fromDB(clientMembershipDB.getMembershipDB()));
-        clientMembershipDto.setCreatedAt(Date.valueOf(clientMembershipDB.getCreatedAt()));
-        clientMembershipDto.setExpiresAt(Date.valueOf(clientMembershipDB.getExpiresAt()));
-        clientMembershipDto.setSessionsRemaining(clientMembershipDB.getSessionsRemaining());
-        return clientMembershipDto;
-    }
+    @Mapping(target = "id", ignore = true)
+    @Mapping(source = "client", target = "clientDB")
+    @Mapping(source = "membership", target = "membershipDB")
+    ClientMembershipDB toDB(ClientMembershipDto clientMembershipDto);
 
-    public static ClientMembershipDB toDB(ClientMembershipDto clientMembershipDto) {
+    default ClientMembershipDB toDB(ClientDB client, MembershipDB membership, LocalDate createdAt, LocalDate expiresAt) {
         ClientMembershipDB clientMembershipDB = new ClientMembershipDB();
-
-        clientMembershipDB.setClientDB(ClientMapper.toDB(clientMembershipDto.getClient()));
-        clientMembershipDB.setMembershipDB(MembershipMapper.toDB(clientMembershipDto.getMembership()));
-        clientMembershipDB.setCreatedAt(clientMembershipDto.getCreatedAt().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate());
-        clientMembershipDB.setExpiresAt(clientMembershipDto.getExpiresAt().toInstant().atZone(java.time.ZoneId.systemDefault()).toLocalDate());
-        clientMembershipDB.setSessionsRemaining(clientMembershipDto.getSessionsRemaining());
-
-        return clientMembershipDB;
-    }
-
-    public static ClientMembershipDB toDB(ClientDB client, MembershipDB membership, LocalDate createdAt, LocalDate expiresAt) {
-        ClientMembershipDB clientMembershipDB = new ClientMembershipDB();
-
         clientMembershipDB.setClientDB(client);
         clientMembershipDB.setMembershipDB(membership);
         clientMembershipDB.setCreatedAt(createdAt);
         clientMembershipDB.setExpiresAt(expiresAt);
         clientMembershipDB.setSessionsRemaining(membership.getSessionsAvailable());
-
         return clientMembershipDB;
     }
-
 }

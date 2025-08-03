@@ -13,21 +13,25 @@ import java.util.stream.Collectors;
 
 @Service
 public class MembershipServiceImplementation implements MembershipService{
-    @Autowired
-    MembershipRepository  membershipRepository;
+    private final MembershipRepository membershipRepository;
+    private final MembershipMapper membershipMapper;
 
-    public MembershipDto saveMembership (CreateMembershipRequest createMembershipRequest){
-        MembershipDB mappedMembership = MembershipMapper.toDB(createMembershipRequest);
-        MembershipDB savedMembership = membershipRepository.save(mappedMembership);
-        return MembershipMapper.fromDB(savedMembership);
+    @Autowired
+    public MembershipServiceImplementation(MembershipRepository membershipRepository,
+                                           MembershipMapper membershipMapper) {
+        this.membershipRepository = membershipRepository;
+        this.membershipMapper = membershipMapper;
     }
 
-    public List<MembershipDto> getAllMemberships (){
-        List<MembershipDB> memberships = membershipRepository.findAll();
+    public MembershipDto saveMembership(CreateMembershipRequest createMembershipRequest) {
+        MembershipDB mappedMembership = membershipMapper.toDB(createMembershipRequest);
+        MembershipDB savedMembership = membershipRepository.save(mappedMembership);
+        return membershipMapper.fromDB(savedMembership);
+    }
 
-        return memberships.stream()
-                .map(MembershipMapper::fromDB)
+    public List<MembershipDto> getAllMemberships() {
+        return membershipRepository.findAll().stream()
+                .map(membershipMapper::fromDB)
                 .collect(Collectors.toList());
-
     }
 }

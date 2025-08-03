@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.sql.Date;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "users")
@@ -14,20 +15,26 @@ import java.sql.Date;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name="user_type",
         discriminatorType = DiscriminatorType.INTEGER)
 public class UserDB {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-    @Column(name = "first_name")
+
+    @Column(name = "first_name", nullable = false)
     private String firstName;
-    @Column(name = "last_name")
+
+    @Column(name = "last_name", nullable = false)
     private String lastName;
-    @Column(name = "date_of_birth")
-    private Date dateOfBirth;
-    @Column(name = "email")
+
+    @Column(name = "date_of_birth", nullable = false)
+    private LocalDate dateOfBirth;
+
+    @Column(name = "email", nullable = false, unique = true)
     private String email;
-    @Column(name = "phone_number")
+
+    @Column(name = "phone_number", nullable = false)
     private String phoneNumber;
 }

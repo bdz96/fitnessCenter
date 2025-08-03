@@ -3,43 +3,19 @@ package com.example.FitnessCenterApp.mapper;
 import com.example.FitnessCenterApp.controller.client.ClientDto;
 import com.example.FitnessCenterApp.controller.client.CreateClientRequest;
 import com.example.FitnessCenterApp.model.ClientDB;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 
-public class ClientMapper {
+@Mapper(componentModel = "spring")
+public interface ClientMapper {
 
-    // convert Client into ClientDto
-    public static ClientDto fromDB(ClientDB client) {
-        ClientDto clientDto = new ClientDto();
-        clientDto.setFirstName(client.getFirstName());
-        clientDto.setLastName(client.getLastName());
-        clientDto.setDateOfBirth(client.getDateOfBirth());
-        clientDto.setEmail(client.getEmail());
-        clientDto.setPhoneNumber(client.getPhoneNumber());
+    ClientDto fromDB(ClientDB client);
 
-        return clientDto;
-    }
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "memberships", ignore = true)
+    ClientDB toDB(ClientDto clientDto);
 
-    // response object to Client
-    public static ClientDB toDB(ClientDto clientDto) {
-        ClientDB client = new ClientDB();
-        client.setFirstName(clientDto.getFirstName());
-        client.setLastName(clientDto.getLastName());
-        client.setDateOfBirth(clientDto.getDateOfBirth());
-        client.setEmail(clientDto.getEmail());
-        client.setPhoneNumber(clientDto.getPhoneNumber());
-
-        return client;
-    }
-
-    // convert CreateRequestClient into Client
-    public static ClientDB toDB(CreateClientRequest createClientRequest) {
-        ClientDB client = new ClientDB();
-        client.setFirstName(createClientRequest.getFirstName());
-        client.setLastName(createClientRequest.getLastName());
-        client.setDateOfBirth(createClientRequest.getDateOfBirth());
-        client.setEmail(createClientRequest.getEmail());
-        client.setPhoneNumber(createClientRequest.getPhoneNumber());
-
-        return client;
-    }
-
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "memberships", ignore = true)
+    ClientDB toDB(CreateClientRequest createClientRequest);
 }

@@ -19,44 +19,46 @@ import java.time.LocalDate;
 
 @Service
 public class ClientMembershipServiceImplementation implements ClientMembershipService {
-    @Autowired
-    ClientRepository clientRepository;
+    private final ClientRepository clientRepository;
+    private final MembershipRepository membershipRepository;
+    private final ClientMembershipRepository clientMembershipRepository;
+    private final ClientMembershipMapper clientMembershipMapper;
 
     @Autowired
-    MembershipRepository membershipRepository;
+    public ClientMembershipServiceImplementation(ClientRepository clientRepository,
+                                                 MembershipRepository membershipRepository,
+                                                 ClientMembershipRepository clientMembershipRepository,
+                                                 ClientMembershipMapper clientMembershipMapper) {
+        this.clientRepository = clientRepository;
+        this.membershipRepository = membershipRepository;
+        this.clientMembershipRepository = clientMembershipRepository;
+        this.clientMembershipMapper = clientMembershipMapper;
+    }
 
-    @Autowired
-    ClientMembershipRepository clientMembershipRepository;
-
-    // assign membership to client
     @Override
-    public ClientMembershipDto assignMembershipToClient(CreateClientMembershipRequest createClientMembershipRequest) {
+    public ClientMembershipDto assignMembershipToClient(CreateClientMembershipRequest request) {
 
-        if (isClientMembershipActive(createClientMembershipRequest.getClientId())) {
+        if (isClientMembershipActive(request.getClientId())) {
             throw new IllegalStateException("Client already has an active membership.");
         }
 
-        ClientDB clientDB = clientRepository.findById(createClientMembershipRequest.getClientId())
+        ClientDB clientDB = clientRepository.findById(request.getClientId())
                 .orElseThrow(() -> new EntityNotFoundException("Client not found"));
-        MembershipDB membershipDB = membershipRepository.findById(createClientMembershipRequest.getMembershipId())
+        MembershipDB membershipDB = membershipRepository.findById(request.getMembershipId())
                 .orElseThrow(() -> new EntityNotFoundException("Membership not found"));
 
         LocalDate createdAtDate = LocalDate.now();
         LocalDate expiresAtDate = calculateEndDate(createdAtDate, membershipDB);
 
-        ClientMembershipDB mappedClientMembership = ClientMembershipMapper.toDB(clientDB, membershipDB, createdAtDate, expiresAtDate); // no req model for now as it's not needed can be added per need
+        ClientMembershipDB mappedClientMembership = clientMembershipMapper.toDB(clientDB, membershipDB, createdAtDate, expiresAtDate);
         ClientMembershipDB savedClientMembership = clientMembershipRepository.save(mappedClientMembership);
 
-        return ClientMembershipMapper.fromDB(savedClientMembership);
-
+        return clientMembershipMapper.fromDB(savedClientMembership);
     }
 
-   // calculate time from posting date + duration based on time unit
     public LocalDate calculateEndDate(LocalDate createdAtDate, MembershipDB membershipDB) {
         int duration = Integer.parseInt(membershipDB.getDuration());
-        TimeUnit timeUnit = membershipDB.getTimeUnit();
-
-        return switch (timeUnit) {
+        return switch (membershipDB.getTimeUnit()) {
             case DAYS -> createdAtDate.plusDays(duration);
             case WEEKS -> createdAtDate.plusWeeks(duration);
             case MONTHS -> createdAtDate.plusMonths(duration);
@@ -64,7 +66,6 @@ public class ClientMembershipServiceImplementation implements ClientMembershipSe
         };
     }
 
-    // check does client already have active membership
     @Override
     public boolean isClientMembershipActive(Integer clientId) {
         return clientMembershipRepository.findActiveMembershipByClientId(clientId) != null;
@@ -72,33 +73,33 @@ public class ClientMembershipServiceImplementation implements ClientMembershipSe
 
     @Override
     public Integer getRemainingSessions(Integer clientId) {
-        ClientMembershipDB clientMembershipDB = getActiveMembershipOrThrow(clientId);
-        return clientMembershipDB.getSessionsRemaining();
+        return getActiveMembershipOrThrow(clientId).getSessionsRemaining();
     }
 
     @Override
     @Transactional
     public Integer useSession(Integer clientId) {
-        ClientMembershipDB clientMembershipDB = getActiveMembershipOrThrow(clientId);
+        ClientMembershipDB membership = getActiveMembershipOrThrow(clientId);
 
-        if (clientMembershipDB.getSessionsRemaining() == null || clientMembershipDB.getSessionsRemaining() <= 0) {
+        if (membership.getSessionsRemaining() == null || membership.getSessionsRemaining() <= 0) {
             throw new IllegalStateException("No remaining sessions.");
         }
-        clientMembershipDB.setSessionsRemaining(clientMembershipDB.getSessionsRemaining() - 1);
-        return clientMembershipDB.getSessionsRemaining();
+
+        membership.setSessionsRemaining(membership.getSessionsRemaining() - 1);
+        return membership.getSessionsRemaining();
     }
 
     private ClientMembershipDB getActiveMembershipOrThrow(Integer clientId) {
-        ClientMembershipDB clientMembershipDB = clientMembershipRepository.findActiveMembershipByClientId(clientId);
+        ClientMembershipDB membership = clientMembershipRepository.findActiveMembershipByClientId(clientId);
 
-        if (clientMembershipDB == null) {
+        if (membership == null) {
             throw new EntityNotFoundException("No active membership found for client.");
         }
 
-        if (clientMembershipDB.getExpiresAt() == null || clientMembershipDB.getExpiresAt().isBefore(LocalDate.now())) {
+        if (membership.getExpiresAt() == null || membership.getExpiresAt().isBefore(LocalDate.now())) {
             throw new IllegalStateException("Membership expired.");
         }
 
-        return clientMembershipDB;
+        return membership;
     }
 }

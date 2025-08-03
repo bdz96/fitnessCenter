@@ -10,4 +10,10 @@ public interface ClientService {
 
     ClientDto saveClient(CreateClientRequest createClientRequest);
 
+    ClientDto getClientById(Integer id);
+
+    void deleteClient(Integer id);
+
+    ClientDto updateClient(Integer id, CreateClientRequest request);
+
 }
