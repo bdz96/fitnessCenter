@@ -1,15 +1,15 @@
 package com.example.FitnessCenterApp.exception;
 
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 import java.time.LocalDateTime;
 import java.util.stream.Collectors;
@@ -48,6 +48,16 @@ public class BaseExceptionHandler {
         return problemDetail;
     }
 
+    @ExceptionHandler(org.hibernate.exception.ConstraintViolationException.class)
+    public ProblemDetail handleHibernateConstraintViolation(org.hibernate.exception.ConstraintViolationException ex, HttpServletRequest request) {
+        String message = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, message);
+        problemDetail.setTitle("Database Constraint Violation");
+        problemDetail.setProperty("timestamp", LocalDateTime.now());
+        problemDetail.setProperty("path", request.getRequestURI());
+        return problemDetail;
+    }
+
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ProblemDetail handleEmailAlreadyExists(EmailAlreadyExistsException ex, HttpServletRequest request) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
@@ -57,10 +67,19 @@ public class BaseExceptionHandler {
         return problemDetail;
     }
 
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ProblemDetail handleEntityNotFound(EntityNotFoundException ex, HttpServletRequest request) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setTitle("Resource Not Found");
+        problemDetail.setProperty("timestamp", LocalDateTime.now());
+        problemDetail.setProperty("path", request.getRequestURI());
+        return problemDetail;
+    }
+
     @ExceptionHandler(ResourceNotFoundException.class)
     public ProblemDetail handleResourceNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problemDetail.setTitle("Resource not found");
+        problemDetail.setTitle("Resource Not Found");
         problemDetail.setProperty("timestamp", LocalDateTime.now());
         problemDetail.setProperty("path", request.getRequestURI());
         return problemDetail;
@@ -68,7 +87,7 @@ public class BaseExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ProblemDetail handleOtherExceptions(Exception ex, HttpServletRequest request) {
-        logger.error("Unhandled exception occurred at {}: {}", request.getRequestURI(), ex.getMessage(), ex);
+        logger.error("Unhandled exception at {}: {}", request.getRequestURI(), ex.getMessage(), ex);
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error");
         problemDetail.setTitle("Internal Server Error");
         problemDetail.setProperty("timestamp", LocalDateTime.now());
@@ -76,4 +95,3 @@ public class BaseExceptionHandler {
         return problemDetail;
     }
 }
-

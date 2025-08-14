@@ -11,6 +11,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MembershipDto {
+    private Integer id;
     private String name;
     private double price;
     private String duration;

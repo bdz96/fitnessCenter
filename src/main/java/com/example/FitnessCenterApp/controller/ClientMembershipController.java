@@ -4,8 +4,6 @@ import com.example.FitnessCenterApp.controller.clientMembership.ClientMembership
 import com.example.FitnessCenterApp.controller.clientMembership.CreateClientMembershipRequest;
 import com.example.FitnessCenterApp.controller.clientMembership.SessionsRemainingDto;
 import com.example.FitnessCenterApp.service.clientMemberships.ClientMembershipService;
-import jakarta.persistence.EntityNotFoundException;
-import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,56 +11,44 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class ClientMembershipController {
-    @Autowired
-    ClientMembershipService clientMembershipService;
 
-    @PostMapping(value = "/client-memberships")
-    public ResponseEntity<ClientMembershipDto> addMembershipToClient(@RequestBody CreateClientMembershipRequest createClientMembershipRequest) {
-        try {
-            ClientMembershipDto newClientMembership = clientMembershipService.assignMembershipToClient(createClientMembershipRequest);
-            return new ResponseEntity<>(newClientMembership, HttpStatus.CREATED);
-        } catch (EntityNotFoundException ex) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } catch (IllegalStateException ex) {
-            return new ResponseEntity<>(HttpStatus.CONFLICT);
-        } catch (ConstraintViolationException ex) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } catch (Exception e) {
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public static final String BASE_PATH = "/client-memberships";
+    public static final String ACTIVE_MEMBERSHIP_PATH = "/active-membership/{clientId}";
+    public static final String SESSIONS_REMAINING_PATH = "/sessions-remaining/{clientId}";
+    public static final String USE_SESSION_PATH = "/use-session/{clientId}";
+
+    private final ClientMembershipService clientMembershipService;
+
+    @Autowired
+    public ClientMembershipController(ClientMembershipService clientMembershipService) {
+        this.clientMembershipService = clientMembershipService;
     }
 
-    @GetMapping("/active-membership/{clientId}")
+    @PostMapping(BASE_PATH)
+    @ResponseStatus(HttpStatus.CREATED)
+    public ClientMembershipDto addMembershipToClient(@RequestBody CreateClientMembershipRequest request) {
+        return clientMembershipService.assignMembershipToClient(request);
+    }
+
+    @GetMapping(ACTIVE_MEMBERSHIP_PATH)
     public ResponseEntity<String> isClientMembershipActive(@PathVariable Integer clientId) {
         boolean active = clientMembershipService.isClientMembershipActive(clientId);
         if (active) {
-            return new ResponseEntity<>("Client has an active membership.", HttpStatus.OK);
+            return ResponseEntity.ok("Client has an active membership.");
         } else {
-            return new ResponseEntity<>("Client does not have an active membership.", HttpStatus.NOT_FOUND);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Client does not have an active membership.");
         }
     }
 
-    @GetMapping("/sessions-remaining/{clientId}")
-    public ResponseEntity<SessionsRemainingDto> getRemainingSessions(@PathVariable Integer clientId) {
-        try {
-            Integer remainingSessions = clientMembershipService.getRemainingSessions(clientId);
-            return ResponseEntity.ok(new SessionsRemainingDto(remainingSessions));
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
+    @GetMapping(SESSIONS_REMAINING_PATH)
+    public SessionsRemainingDto getRemainingSessions(@PathVariable Integer clientId) {
+        Integer remainingSessions = clientMembershipService.getRemainingSessions(clientId);
+        return new SessionsRemainingDto(remainingSessions);
     }
 
-    @PostMapping("/use-session/{clientId}")
-    public ResponseEntity<SessionsRemainingDto> useSession(@PathVariable Integer clientId) {
-        try {
-            Integer remainingSessions = clientMembershipService.useSession(clientId);
-            return ResponseEntity.ok(new SessionsRemainingDto(remainingSessions));
-        } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        } catch (IllegalStateException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
-        }
+    @PostMapping(USE_SESSION_PATH)
+    public SessionsRemainingDto useSession(@PathVariable Integer clientId) {
+        Integer remainingSessions = clientMembershipService.useSession(clientId);
+        return new SessionsRemainingDto(remainingSessions);
     }
 }

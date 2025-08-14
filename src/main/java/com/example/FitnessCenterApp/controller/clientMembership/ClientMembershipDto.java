@@ -14,6 +14,7 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 public class ClientMembershipDto {
+    private Integer id;
     private ClientDto client;
     private MembershipDto membership;
     private LocalDate  createdAt;
