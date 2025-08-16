@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -93,5 +94,25 @@ public class BaseExceptionHandler {
         problemDetail.setProperty("timestamp", LocalDateTime.now());
         problemDetail.setProperty("path", request.getRequestURI());
         return problemDetail;
+    }
+
+    @ExceptionHandler(ClientAlreadyHasActiveMembershipException.class)
+    public ResponseEntity<ProblemDetail> handleActiveMembership(ClientAlreadyHasActiveMembershipException ex) {
+        ProblemDetail detail = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(detail);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ProblemDetail> handleIllegalState(IllegalStateException ex) {
+        if(ex.getMessage().equals("No remaining sessions.")) {
+            ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+            pd.setTitle("Invalid Operation");
+            pd.setDetail(ex.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(pd);
+        }
+        ProblemDetail pd = ProblemDetail.forStatus(HttpStatus.INTERNAL_SERVER_ERROR);
+        pd.setTitle("Server Error");
+        pd.setDetail(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(pd);
     }
 }

@@ -2,6 +2,7 @@ package com.example.FitnessCenterApp.service.clientMemberships;
 
 import com.example.FitnessCenterApp.controller.clientMembership.ClientMembershipDto;
 import com.example.FitnessCenterApp.controller.clientMembership.CreateClientMembershipRequest;
+import com.example.FitnessCenterApp.exception.ClientAlreadyHasActiveMembershipException;
 import com.example.FitnessCenterApp.mapper.ClientMembershipMapper;
 import com.example.FitnessCenterApp.model.ClientDB;
 import com.example.FitnessCenterApp.model.ClientMembershipDB;
@@ -38,14 +39,15 @@ public class ClientMembershipServiceImplementation implements ClientMembershipSe
     @Override
     public ClientMembershipDto assignMembershipToClient(CreateClientMembershipRequest request) {
 
-        if (isClientMembershipActive(request.getClientId())) {
-            throw new IllegalStateException("Client already has an active membership.");
-        }
-
         ClientDB clientDB = clientRepository.findById(request.getClientId())
                 .orElseThrow(() -> new EntityNotFoundException("Client not found"));
+
         MembershipDB membershipDB = membershipRepository.findById(request.getMembershipId())
                 .orElseThrow(() -> new EntityNotFoundException("Membership not found"));
+
+        if (isClientMembershipActive(request.getClientId())) {
+            throw new ClientAlreadyHasActiveMembershipException("Client already has an active membership.");
+        }
 
         LocalDate createdAtDate = LocalDate.now();
         LocalDate expiresAtDate = calculateEndDate(createdAtDate, membershipDB);
