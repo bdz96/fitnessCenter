@@ -8,6 +8,7 @@ import com.example.FitnessCenterApp.mapper.ClientMapper;
 import com.example.FitnessCenterApp.model.ClientDB;
 import com.example.FitnessCenterApp.repository.ClientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,6 +18,9 @@ import java.util.stream.Collectors;
 public class ClientServiceImplementation implements ClientService {
     private final ClientRepository clientRepository;
     private final ClientMapper clientMapper;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     public ClientServiceImplementation(ClientRepository clientRepository, ClientMapper clientMapper) {
@@ -29,7 +33,11 @@ public class ClientServiceImplementation implements ClientService {
         if (clientRepository.existsByEmail(createClientRequest.getEmail())) {
             throw new EmailAlreadyExistsException("Email already exists");
         }
-        ClientDB savedClient = clientRepository.save(clientMapper.toDB(createClientRequest));
+
+        ClientDB client = clientMapper.toDB(createClientRequest);
+        client.setPassword(passwordEncoder.encode(createClientRequest.getPassword()));
+
+        ClientDB savedClient = clientRepository.save(client);
         return clientMapper.fromDB(savedClient);
     }
 

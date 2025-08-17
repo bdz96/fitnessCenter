@@ -37,4 +37,8 @@ public class UserDB {
 
     @Column(name = "phone_number", nullable = false)
     private String phoneNumber;
+
+    @Column(name = "password", nullable = false)
+    private String password;
 }
+

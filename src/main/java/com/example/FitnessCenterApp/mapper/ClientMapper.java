@@ -13,9 +13,11 @@ public interface ClientMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "memberships", ignore = true)
+    @Mapping(target = "password", ignore = true)
     ClientDB toDB(ClientDto clientDto);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "memberships", ignore = true)
+    @Mapping(target = "password", ignore = true)
     ClientDB toDB(CreateClientRequest createClientRequest);
 }

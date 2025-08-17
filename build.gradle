@@ -32,8 +32,12 @@ dependencies {
 	testCompileOnly 'org.projectlombok:lombok:1.18.34'
 	testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-
+	implementation 'org.springframework.security:spring-security-crypto'
 	runtimeOnly 'org.postgresql:postgresql'
+	implementation 'org.springframework.security:spring-security-crypto:6.3.0'
+	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
 	// test dependencies
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'

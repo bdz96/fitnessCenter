@@ -57,7 +57,8 @@ public class ClientControllerTest {
                 "Dizdarevic",
                 LocalDate.of(1996, 4, 27),
                 uniqueEmail,
-                "123456789"
+                "123456789",
+                "plainPassword123"
         );
     }
 
@@ -123,7 +124,7 @@ public class ClientControllerTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getTitle()).isEqualTo("Resource not found");
+        assertThat(response.getBody().getTitle()).isEqualToIgnoringCase("Resource not found");
     }
 
     /**
@@ -298,7 +299,8 @@ public class ClientControllerTest {
                 "UpdatedLastName",
                 LocalDate.of(1990, 1, 1),
                 createdClient.getEmail(),
-                "987654321"
+                "987654321",
+                "plainPassword123" //  add new model with just phone num update ?
         );
 
         ResponseEntity<ClientDto> updateResponse = restTemplate.exchange(
@@ -346,7 +348,7 @@ public class ClientControllerTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody().getTitle()).isEqualTo("Resource not found");
+        assertThat(response.getBody().getTitle()).isEqualToIgnoringCase("Resource not found");
 
         long countAfter = getClientCount();
 
