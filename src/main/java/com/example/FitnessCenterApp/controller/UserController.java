@@ -17,7 +17,7 @@ public class UserController {
 
     @PostMapping("/token")
     public ResponseEntity<TokenResponse> login(@Valid @RequestBody LoginRequest request) {
-        String token = userService.login(request);
-        return ResponseEntity.ok(new TokenResponse(token));
+        TokenResponse tokenResponse = userService.login(request);
+        return ResponseEntity.ok(tokenResponse);
     }
 }
