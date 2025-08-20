@@ -44,7 +44,7 @@ public class UsersControllerTest {
     @Test
     @SneakyThrows
     public void loginSuccessfully() {
-        LoginRequest request = new LoginRequest("login.client@example.com", "password123");
+        LoginRequest request = new LoginRequest("login.client@example.com", "krompir96");
 
         ResponseEntity<TokenResponse> response = restTemplate.postForEntity(
                 BASE_PATH,

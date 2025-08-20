@@ -6,7 +6,7 @@ TRUNCATE TABLE client_membershipdb, memberships, users RESTART IDENTITY CASCADE;
 -- USERS
 INSERT INTO users (first_name, last_name, date_of_birth, email, phone_number, password, user_type)
 VALUES
- ('Login', 'Client', '1990-01-01', 'login.client@example.com', '111111111','password123', 1),
+ ('Login', 'Client', '1990-01-01', 'login.client@example.com', '111111111','$2a$10$a4m1GcikG5pVVB7tonCq2.GvAv6mK/vBP5PZwTHjil7Im1EV0FgDC', 1),
   ('Test', 'User', '1990-01-01', 'test.user@example.com', '123456789','$2a$10$dummyhashedpass', 1),
   ('Active', 'Client', '1990-01-01', 'active.client@example.com', '123456788','$2a$10$dummyhashedpass', 1),
   ('ZeroSessions', 'Client', '1990-01-01', 'zero.sessions@example.com', '123456787','$2a$10$dummyhashedpass', 1);
