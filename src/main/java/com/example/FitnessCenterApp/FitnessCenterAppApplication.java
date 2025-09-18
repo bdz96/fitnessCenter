@@ -2,6 +2,7 @@ package com.example.FitnessCenterApp;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 
 @SpringBootApplication
 public class FitnessCenterAppApplication {
@@ -10,5 +11,4 @@ public class FitnessCenterAppApplication {
 		SpringApplication.run(FitnessCenterAppApplication.class, args);
 		System.out.println("hello");
 	}
-
 }
