@@ -120,7 +120,11 @@ public class BaseExceptionHandler {
     @ExceptionHandler(ResponseStatusException.class)
     public ProblemDetail handleResponseStatusException(ResponseStatusException ex, HttpServletRequest request) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(ex.getStatusCode(), ex.getReason());
-        problemDetail.setTitle(ex.getStatusCode().toString());
+        if (ex.getStatusCode() == HttpStatus.NOT_FOUND) {
+            problemDetail.setTitle("Resource not found");
+        } else {
+            problemDetail.setTitle(ex.getStatusCode().toString());
+        }
         problemDetail.setProperty("timestamp", LocalDateTime.now());
         problemDetail.setProperty("path", request.getRequestURI());
         return problemDetail;

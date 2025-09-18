@@ -79,9 +79,9 @@ public class ClientMembershipControllerTest {
 
         assertThat(dto.getId()).isNotNull();
         assertThat(dto.getClient().getId()).isEqualTo(1);
-        assertThat(dto.getClient().getFirstName()).isEqualTo("Test");
-        assertThat(dto.getClient().getLastName()).isEqualTo("User");
-        assertThat(dto.getClient().getEmail()).isEqualTo("test.user@example.com");
+        assertThat(dto.getClient().getFirstName()).isEqualTo("Login");
+        assertThat(dto.getClient().getLastName()).isEqualTo("Client");
+        assertThat(dto.getClient().getEmail()).isEqualTo("login.client@example.com");
         assertThat(dto.getMembership().getId()).isEqualTo(1);
         assertThat(dto.getMembership().getName()).isEqualTo("Basic");
         assertThat(dto.getMembership().getPrice()).isEqualTo(100);

@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -15,11 +16,17 @@ import java.io.IOException;
 import java.util.List;
 
 @Component
+@Profile("!test")
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private static final Logger log = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
-    private static final List<String> PUBLIC_URLS = List.of("/users/token", "/clients");
+
+    // Public URLs that do NOT require JWT
+    private static final List<String> PUBLIC_URLS = List.of(
+            "/users/token",
+            "/clients"
+    );
 
     public JwtAuthenticationFilter(JwtUtil jwtUtil) {
         this.jwtUtil = jwtUtil;
@@ -31,11 +38,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
 
         String path = request.getRequestURI();
-        if (PUBLIC_URLS.contains(path)) {
+
+        // Treat any path starting with a public URL as public
+        boolean isPublic = PUBLIC_URLS.stream().anyMatch(path::startsWith);
+        if (isPublic) {
             filterChain.doFilter(request, response);
             return;
         }
 
+        // Check Authorization header
         String authHeader = request.getHeader("Authorization");
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             log.info("Unauthorized request to {}: missing Authorization header", path);

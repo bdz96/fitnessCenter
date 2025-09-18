@@ -2,15 +2,15 @@ package com.example.FitnessCenterApp.service.client;
 
 import com.example.FitnessCenterApp.controller.client.ClientDto;
 import com.example.FitnessCenterApp.controller.client.CreateClientRequest;
+import com.example.FitnessCenterApp.exception.EmailAlreadyExistsException;
+import com.example.FitnessCenterApp.exception.ResourceNotFoundException;
 import com.example.FitnessCenterApp.mapper.ClientMapper;
 import com.example.FitnessCenterApp.model.ClientDB;
 import com.example.FitnessCenterApp.repository.ClientRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -35,8 +35,13 @@ public class ClientServiceImplementation implements ClientService {
     public ClientDto saveClient(CreateClientRequest request) {
         log.info("Creating new client with email={}", request.getEmail());
 
-        ClientDB client = clientMapper.toDB(request);
+        // Check for duplicate email before inserting
+        if (clientRepository.existsByEmail(request.getEmail())) {
+            log.warn("Email already exists: {}", request.getEmail());
+            throw new EmailAlreadyExistsException("Email already exists");
+        }
 
+        ClientDB client = clientMapper.toDB(request);
         client.setPassword(passwordEncoder.encode(request.getPassword()));
 
         ClientDB saved = clientRepository.save(client);
@@ -59,7 +64,7 @@ public class ClientServiceImplementation implements ClientService {
                 .map(clientMapper::fromDB)
                 .orElseThrow(() -> {
                     log.warn("Client not found with id={}", id);
-                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found");
+                    return new ResourceNotFoundException("Client not found with id=" + id);
                 });
     }
 
@@ -67,7 +72,7 @@ public class ClientServiceImplementation implements ClientService {
     public void deleteClient(Integer id) {
         if (!clientRepository.existsById(id)) {
             log.warn("Attempted to delete non-existent client with id={}", id);
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found");
+            throw new ResourceNotFoundException("Client not found with id=" + id);
         }
         clientRepository.deleteById(id);
         log.info("Deleted client with id={}", id);
@@ -78,10 +83,16 @@ public class ClientServiceImplementation implements ClientService {
         ClientDB existing = clientRepository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("Client not found with id={}", id);
-                    return new ResponseStatusException(HttpStatus.NOT_FOUND, "Client not found");
+                    return new ResourceNotFoundException("Client not found with id=" + id);
                 });
 
         log.info("Updating client with id={}", id);
+
+        // Check if updating email to one that already exists
+        if (!existing.getEmail().equals(request.getEmail()) && clientRepository.existsByEmail(request.getEmail())) {
+            log.warn("Email already exists: {}", request.getEmail());
+            throw new EmailAlreadyExistsException("Email already exists");
+        }
 
         existing.setFirstName(request.getFirstName());
         existing.setLastName(request.getLastName());
